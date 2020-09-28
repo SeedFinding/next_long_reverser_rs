@@ -1,0 +1,5 @@
+Using GPU NVIDIA Corporation GeForce GTX 1050 OpenCL 1.2 CUDA, 5 CUs
+Number of spawned threads : 4294967296, at each step using : 32768 threads, each thread going through stride: 65536. 
+Thus doing 131072 steps for a total iteration of 281474976710656. 
+Executing kernel.start
+Work Load possible: 4100 4101 4131 4099
