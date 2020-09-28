@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use java_random::Random;
+    use java_random::{Random, JAVA_LCG};
     use crate::get_next_long;
 
     #[test]
@@ -9,7 +9,7 @@ mod tests {
         let value=r.next_long();
         let res=get_next_long((value & 0xffff_ffff_ffff) as u64);
         println!("{:?}", res);
-        assert!(res.contains(&(123 as u64)));
+        assert!(res.contains(&(123^JAVA_LCG.multiplier as u64)));
     }
 }
 
@@ -22,11 +22,11 @@ fn floor_div(x: i64, y: i64) -> i64 {
     return r;
 }
 
-fn get_next_long(mut structure_seed: u64) -> Vec<u64> {
+pub fn get_next_long(mut structure_seed: u64) -> Vec<u64> {
     let mut res: Vec<u64> = Vec::with_capacity(2);
     structure_seed = structure_seed & 0xffff_ffff_ffff;
-    let lower_bits: u32 = (structure_seed & 0xffff_ffff) as u32;
-    let mut upper_bits: u32 = (structure_seed >> 32) as u32;
+    let lower_bits: i64 = (structure_seed & 0xffff_ffff) as i64;
+    let mut upper_bits: i64 = (structure_seed >> 32) as i64;
     //Did the lower bits affect the upper bits
     if (lower_bits & 0x8000_0000) != 0 {
         upper_bits += 1; //restoring the initial value of the upper bits
@@ -54,7 +54,7 @@ fn get_next_long(mut structure_seed: u64) -> Vec<u64> {
             let seed = -39761 * (m1lv + i) + 35098 * (m2lv + j);
             if ((46603 * (m1lv + i) + 66882 * (m2lv + j)) + 107048004364969 >> 16) == upper_bits as i64 {
                 if seed >> 16 == lower_bits as i64 {
-                    res.push(((254681119335897 * seed + 120305458776662) & 0xffff_ffff_ffff) as u64)//pull back 2 LCG calls
+                    res.push((( seed.wrapping_mul(254681119335897).wrapping_add(120305458776662)) & 0xffff_ffff_ffff) as u64)//pull back 2 LCG calls
                 }
             }
         }
