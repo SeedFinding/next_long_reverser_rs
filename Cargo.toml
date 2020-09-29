@@ -1,8 +1,11 @@
 [package]
 name = "next_long_reverser"
 version = "0.1.0"
-authors = ["Neil <h66r10@gmail.com>"]
+authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
+description="The preimage of nextLong() for the Java LCG"
+categories=["algorithms","data-structures"]
+license="MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
