@@ -29,7 +29,7 @@ static inline uint64_t stop_timer(uint64_t start) {
 }
 
 int main(int argc, char **argv) {
-    FILE *log_file = fopen("out.txt", "w");
+    FILE *log_file = fopen("out.txt", "wb");
     if (!log_file) perror("Error opening logfile");
     const char *kernel_file = "kernel.cl";
     const char *kernel_name = "start";
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     cl_context context = clCreateContext(NULL, 1, &device, NULL, NULL, NULL);
     device_info *info = getDeviceInfo(device);
     printf("Using %s\n", info->info_str);
-    fprintf(log_file, "Using %s\n", info->info_str);
+    //fprintf(log_file, "Using %s\n", info->info_str);
     free(info);
     cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, 0, NULL);
     cl_int error;
@@ -111,9 +111,9 @@ int main(int argc, char **argv) {
     uint64_t stride = 1LLU << (48U - x2total);
 
     printf("Number of spawned threads : %llu, at each step using : %llu threads, each thread going through stride: %llu. \n", ntotal, nstep, stride,ntotal*nstep*stride);
-    fprintf(log_file, "Number of spawned threads : %llu, at each step using : %llu threads, each thread going through stride: %llu. \n", ntotal, nstep, stride,ntotal*nstep*stride);
+    //fprintf(log_file, "Number of spawned threads : %llu, at each step using : %llu threads, each thread going through stride: %llu. \n", ntotal, nstep, stride,ntotal*nstep*stride);
     printf("Thus doing %lld steps for a total iteration of %lld. \n", ntotal/nstep,stride*ntotal);
-    fprintf(log_file, "Thus doing %lld steps for a total iteration of %lld. \n", ntotal/nstep,stride*ntotal);
+    //fprintf(log_file, "Thus doing %lld steps for a total iteration of %lld. \n", ntotal/nstep,stride*ntotal);
     fflush(stdout);
     cl_mem mem_seeds = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * nstep, NULL, NULL);
     cl_mem mem_debug = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * nstep, NULL, NULL);
@@ -134,10 +134,10 @@ int main(int argc, char **argv) {
     strcpy(kf, kernel_file);
     kf[strlen(kf) - 3] = 0;
     printf("Executing %s.%s\n", kf, kernel_name);
-    fprintf(log_file, "Executing %s.%s\n", kf, kernel_name);
+    //fprintf(log_file, "Executing %s.%s\n", kf, kernel_name);
 
 	printf("Work Load possible: %d %d %d %d\n",CL_DEVICE_MAX_WORK_GROUP_SIZE,CL_DEVICE_MAX_WORK_ITEM_SIZES,CL_DEVICE_LOCAL_MEM_SIZE,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS);
-    fprintf(log_file, "Work Load possible: %d %d %d %d\n",CL_DEVICE_MAX_WORK_GROUP_SIZE,CL_DEVICE_MAX_WORK_ITEM_SIZES,CL_DEVICE_LOCAL_MEM_SIZE,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS);
+    //fprintf(log_file, "Work Load possible: %d %d %d %d\n",CL_DEVICE_MAX_WORK_GROUP_SIZE,CL_DEVICE_MAX_WORK_ITEM_SIZES,CL_DEVICE_LOCAL_MEM_SIZE,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS);
     uint64_t t = start_timer();
     for (size_t offset = 0; offset < ntotal; offset += nstep) {
         for (size_t i = 0; i < nstep; i++) seeds[i] = UINT64_MAX;
@@ -162,7 +162,8 @@ int main(int argc, char **argv) {
             uint32_t count = output[i];
             //fprintf(log_file, "global id %04lld offset %04lld local counter %04lld out %04ld %04lld\n", seeds[i],offset,i,output[i],debug[i]);
             if (count != 0) {
-                fprintf(log_file, "%016xlld %016xlld %08xld\n", seeds[i], debug[i],count);
+                //fprintf(log_file, "%016xlld\n", debug[i]);
+                fwrite(&debug[i] ,sizeof(uint64_t),1,log_file);
                 //printf("\n%lld %lld %ld\n", seeds[i],debug[i],count);
             }
         }

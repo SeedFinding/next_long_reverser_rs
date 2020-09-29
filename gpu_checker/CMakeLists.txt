@@ -38,3 +38,6 @@ target_link_libraries(gpu ${OpenCL_LIBRARY})
 
 add_custom_command(TARGET gpu PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/kernel.cl ${CMAKE_CURRENT_BINARY_DIR}/kernel.cl)
 
+
+# sudo apt update && sudo apt install -yq ocl-icd-opencl-dev git screen cmake && git clone https://github.com/hube12/next_long_reverser_rs && cd next_long_reverser_rs/gpu_checker && cmake . && make gpu
+
