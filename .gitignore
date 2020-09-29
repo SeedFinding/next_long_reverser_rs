@@ -2,3 +2,5 @@
 Cargo.lock
 
 .idea/
+
+gpu_checker/cmake-build-debug/

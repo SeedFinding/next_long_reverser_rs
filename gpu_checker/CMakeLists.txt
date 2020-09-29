@@ -36,10 +36,5 @@ endif (CMAKE_COMPILER_IS_GNUCC)
 add_executable (gpu ${opencl_src})
 target_link_libraries(gpu ${OpenCL_LIBRARY})
 
-# add_custom_command(TARGET gpu PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/kernel.cl ${CMAKE_CURRENT_BINARY_DIR}/kernel.cl)
+add_custom_command(TARGET gpu PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/kernel.cl ${CMAKE_CURRENT_BINARY_DIR}/kernel.cl)
 
-add_custom_command(
-        TARGET gpu PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/jrand.cl
-        ${CMAKE_CURRENT_BINARY_DIR}/jrand.cl)
