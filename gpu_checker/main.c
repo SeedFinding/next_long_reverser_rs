@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     check(error, "Linking");
     cl_kernel kernel = clCreateKernel(program, kernel_name, NULL);
 
-    unsigned int x2total = 33;
+    unsigned int x2total = 30;
     unsigned int x2step = 15;
     size_t ntotal = 1LLU << x2total;
     size_t nstep = 1LLU << min(x2step, x2total);
@@ -116,19 +116,28 @@ int main(int argc, char **argv) {
     //fprintf(log_file, "Thus doing %lld steps for a total iteration of %lld. \n", ntotal/nstep,stride*ntotal);
     fflush(stdout);
     cl_mem mem_seeds = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * nstep, NULL, NULL);
-    cl_mem mem_debug = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * nstep, NULL, NULL);
-    cl_mem mem_output = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
+    cl_mem mem_output_1 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
+    cl_mem mem_output_2 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
+    cl_mem mem_output_3 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
+    cl_mem mem_output_4 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
+    cl_mem mem_output_5 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * nstep, NULL, NULL);
 
     check(clSetKernelArg(kernel, 1, sizeof(cl_ulong), &stride), "Argument stride");
     check(clSetKernelArg(kernel, 2, sizeof(cl_mem), &mem_seeds), "Argument seeds");
-    check(clSetKernelArg(kernel, 3, sizeof(cl_mem), &mem_debug), "Argument debug");
-    check(clSetKernelArg(kernel, 4, sizeof(cl_mem), &mem_output), "Argument output");
+    check(clSetKernelArg(kernel, 3, sizeof(cl_mem), &mem_output_1), "Argument ret1");
+    check(clSetKernelArg(kernel, 4, sizeof(cl_mem), &mem_output_2), "Argument ret2");
+    check(clSetKernelArg(kernel, 5, sizeof(cl_mem), &mem_output_3), "Argument ret3");
+    check(clSetKernelArg(kernel, 6, sizeof(cl_mem), &mem_output_4), "Argument ret4");
+    check(clSetKernelArg(kernel, 7, sizeof(cl_mem), &mem_output_5), "Argument ret5");
 
     size_t global_work_size[1] = {nstep};
 
     uint64_t *seeds = malloc(nstep * sizeof(uint64_t));
-    uint64_t *debug = malloc(nstep * sizeof(uint64_t));
-    uint32_t *output = malloc(nstep * sizeof(uint32_t));
+    uint32_t *output_1 = malloc(nstep * sizeof(uint32_t));
+    uint32_t *output_2 = malloc(nstep * sizeof(uint32_t));
+    uint32_t *output_3 = malloc(nstep * sizeof(uint32_t));
+    uint32_t *output_4 = malloc(nstep * sizeof(uint32_t));
+    uint32_t *output_5 = malloc(nstep * sizeof(uint32_t));
 
     char *kf = malloc(strlen(kernel_file));
     strcpy(kf, kernel_file);
@@ -140,9 +149,14 @@ int main(int argc, char **argv) {
     //fprintf(log_file, "Work Load possible: %d %d %d %d\n",CL_DEVICE_MAX_WORK_GROUP_SIZE,CL_DEVICE_MAX_WORK_ITEM_SIZES,CL_DEVICE_LOCAL_MEM_SIZE,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS);
     uint64_t t = start_timer();
     for (size_t offset = 0; offset < ntotal; offset += nstep) {
-        for (size_t i = 0; i < nstep; i++) seeds[i] = UINT64_MAX;
-        for (size_t i = 0; i < nstep; i++) debug[i] = UINT64_MAX;
-        for (size_t i = 0; i < nstep; i++) output[i] = UINT32_MAX;
+        for (size_t i = 0; i < nstep; i++) {
+            seeds[i] = UINT64_MAX;
+            output_1[i]= UINT32_MAX;
+            output_2[i]= UINT32_MAX;
+            output_3[i]= UINT32_MAX;
+            output_4[i]= UINT32_MAX;
+            output_5[i]= UINT32_MAX;
+        }
         float perc = offset * 100.f / ntotal;
         uint64_t t2 = start_timer();
         check(clSetKernelArg(kernel, 0, sizeof(offset), &offset), "Argument offset");
@@ -152,19 +166,26 @@ int main(int argc, char **argv) {
         check(clFinish(queue), "\nFinish execute");
         printf("\r<- %3.3f%%", perc);
         fflush(stdout);
-        check(clEnqueueReadBuffer(queue, mem_output, 1, 0, nstep * sizeof(uint32_t), output, 0, NULL, NULL), "\nRead");
+
         check(clEnqueueReadBuffer(queue, mem_seeds, 1, 0, nstep * sizeof(uint64_t), seeds, 0, NULL, NULL), "\nRead");
-        check(clEnqueueReadBuffer(queue, mem_debug, 1, 0, nstep * sizeof(uint64_t), debug, 0, NULL, NULL), "\nRead");
+        check(clEnqueueReadBuffer(queue, mem_output_1, 1, 0, nstep * sizeof(uint32_t), output_1, 0, NULL, NULL), "\nRead");
+        check(clEnqueueReadBuffer(queue, mem_output_2, 1, 0, nstep * sizeof(uint32_t), output_2, 0, NULL, NULL), "\nRead");
+        check(clEnqueueReadBuffer(queue, mem_output_3, 1, 0, nstep * sizeof(uint32_t), output_3, 0, NULL, NULL), "\nRead");
+        check(clEnqueueReadBuffer(queue, mem_output_4, 1, 0, nstep * sizeof(uint32_t), output_4, 0, NULL, NULL), "\nRead");
+        check(clEnqueueReadBuffer(queue, mem_output_5, 1, 0, nstep * sizeof(uint32_t), output_5, 0, NULL, NULL), "\nRead");
         uint64_t d2 = stop_timer(t2);
         printf("\rw  %3.3f%% %.4f" CLEAR_LINE, perc, d2 / 1000000.f);
         fflush(stdout);
         for (size_t i = 0; i < nstep; i++) {
-            uint32_t count = output[i];
+            uint32_t count = output_5[i];
             //fprintf(log_file, "global id %04lld offset %04lld local counter %04lld out %04ld %04lld\n", seeds[i],offset,i,output[i],debug[i]);
             if (count != 0) {
                 //fprintf(log_file, "%016xlld\n", debug[i]);
-                fwrite(&debug[i] ,sizeof(uint64_t),1,log_file);
-                //printf("\n%lld %lld %ld\n", seeds[i],debug[i],count);
+                fwrite(&output_1[i] ,sizeof(uint32_t),1,log_file);
+                fwrite(&output_2[i] ,sizeof(uint32_t),1,log_file);
+                fwrite(&output_3[i] ,sizeof(uint32_t),1,log_file);
+                fwrite(&output_4[i] ,sizeof(uint32_t),1,log_file);
+                printf("\n%lld %ld %ld %ld %ld %ld\n", seeds[i],output_1[i],output_2[i],output_3[i],output_4[i],count);
             }
         }
         fflush(log_file);
