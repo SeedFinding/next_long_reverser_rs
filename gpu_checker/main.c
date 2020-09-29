@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     check(error, "Linking");
     cl_kernel kernel = clCreateKernel(program, kernel_name, NULL);
 
-    unsigned int x2total = 32;
+    unsigned int x2total = 33;
     unsigned int x2step = 15;
     size_t ntotal = 1LLU << x2total;
     size_t nstep = 1LLU << min(x2step, x2total);
@@ -130,8 +130,6 @@ int main(int argc, char **argv) {
     uint64_t *debug = malloc(nstep * sizeof(uint64_t));
     uint32_t *output = malloc(nstep * sizeof(uint32_t));
 
-    // FILE *f = fopen(file, "w");
-
     char *kf = malloc(strlen(kernel_file));
     strcpy(kf, kernel_file);
     kf[strlen(kf) - 3] = 0;
@@ -144,7 +142,7 @@ int main(int argc, char **argv) {
     for (size_t offset = 0; offset < ntotal; offset += nstep) {
         for (size_t i = 0; i < nstep; i++) seeds[i] = UINT64_MAX;
         for (size_t i = 0; i < nstep; i++) debug[i] = UINT64_MAX;
-        for (size_t i = 0; i < nstep; i++) output[i] = UINT64_MAX;
+        for (size_t i = 0; i < nstep; i++) output[i] = UINT32_MAX;
         float perc = offset * 100.f / ntotal;
         uint64_t t2 = start_timer();
         check(clSetKernelArg(kernel, 0, sizeof(offset), &offset), "Argument offset");
@@ -164,8 +162,8 @@ int main(int argc, char **argv) {
             uint32_t count = output[i];
             //fprintf(log_file, "global id %04lld offset %04lld local counter %04lld out %04ld %04lld\n", seeds[i],offset,i,output[i],debug[i]);
             if (count != 0) {
-                fprintf(log_file, "%016lld %016lld\n", seeds[i], debug[i]);
-                printf("\n%lld %lld %ld\n", seeds[i],debug[i],count);
+                fprintf(log_file, "%016xlld %016xlld %08xld\n", seeds[i], debug[i],count);
+                //printf("\n%lld %lld %ld\n", seeds[i],debug[i],count);
             }
         }
         fflush(log_file);

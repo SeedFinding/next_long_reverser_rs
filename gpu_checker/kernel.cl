@@ -21,6 +21,10 @@ inline long random_next_long (long *random) {
 __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global ulong *debug, __global uint *ret) {
 	size_t id = get_global_id(0);
 	uint max_count = 0;
+	ushort max_count_1 = 0;
+	ushort max_count_2 = 0;
+	ushort max_count_3 = 0;
+	ushort max_count_4 = 0;
 	ulong seed_base = (offset + id) * stride;
 	for (ulong i = 0; i < stride; i++) {
 		long world_seed = seed_base|i;
@@ -28,7 +32,6 @@ __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global u
 		long next_long = random_next_long(&r);
         long original=world_seed ^ 0x5DEECE66DUL;
         seeds[id] = world_seed;
-        debug[id] = next_long;
 
         next_long=next_long & 0xFFFFFFFFFFFFUL;
         long lower_bits = next_long & 0xffffffffUL;
@@ -46,7 +49,7 @@ __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global u
             long seed = -39761 * m1lv + 35098 * m2lv;
             if ((((ulong)seed) >> 16) == lower_bits) {
                 if (((254681119335897L * seed + 120305458776662L) & 0xffffffffffffUL) == original){
-        			continue;
+        			max_count_1++;
         		}
             }
         }
@@ -54,7 +57,7 @@ __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global u
         	long seed = -39761 * (m1lv+1)+ 35098 * m2lv;
             if ((((ulong)seed) >> 16) == lower_bits) {
                 if (((254681119335897L * seed + 120305458776662L) & 0xffffffffffffUL) == original){
-        			continue;
+        			max_count_2++;
         		}
             }
         }
@@ -62,7 +65,7 @@ __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global u
         	long seed = -39761 * m1lv + 35098 * (m2lv +1);
             if ((((ulong)seed) >> 16) == lower_bits) {
                 if (((254681119335897L * seed + 120305458776662L) & 0xffffffffffffUL) == original){
-        			continue;
+        			max_count_3++;
         		}
             }
         }
@@ -70,11 +73,12 @@ __kernel void start(ulong offset, ulong stride, __global ulong *seeds,__global u
         	long seed = -39761 * (m1lv+1)+ 35098 * (m2lv +1);
             if ((((ulong)seed) >> 16) == lower_bits) {
                 if (((254681119335897L * seed + 120305458776662L) & 0xffffffffffffUL) == original){
-        			continue;
+        			max_count_4++;
         		}
             }
         }
         max_count++;
 	}
+	debug[id]= max_count_1 <<48 | max_count_2<<32 | max_count_3<<16 | max_count_4;
 	ret[id] = max_count;
 }
